@@ -2,6 +2,7 @@
 
 import UIKit
 import FirebaseAuth
+import FBSDKLoginKit
 
 class RegisterViewController: UIViewController {
 
@@ -92,6 +93,9 @@ class RegisterViewController: UIViewController {
         return button
     }()
     
+    
+    let facebookloginButton = FBLoginButton()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
@@ -114,6 +118,9 @@ class RegisterViewController: UIViewController {
         scrollView.addSubview(emailField)
         scrollView.addSubview(passwordField)
         scrollView.addSubview(LoginButton)
+        
+        //adding facebook button
+        scrollView.addSubview(facebookloginButton)
     }
     
     override func viewWillLayoutSubviews() {
@@ -134,6 +141,8 @@ class RegisterViewController: UIViewController {
         passwordField.frame = CGRect(x: 30, y: emailField.bottom+15, width: scrollView.width-60, height: 52)
         
         LoginButton.frame = CGRect(x: 30, y: passwordField.bottom+20, width: scrollView.width-60, height: 52)
+        
+        facebookloginButton.frame = CGRect(x: 30, y: LoginButton.bottom+20, width: scrollView.width-60, height: 52)
     }
     
     @objc func registerButtonDidTouch(){
@@ -175,7 +184,7 @@ class RegisterViewController: UIViewController {
                 }
                 
                 print("welcome to database")
-                DatabaseManager.shared.insertUser(with: ChatAppUser(username: username))
+                DatabaseManager.shared.insertUser(with: ChatAppUser(username: username ,email : email))
                 
                 //back to navigation controller where it is instaniate
                 strongSelf.navigationController?.dismiss(animated: true, completion: nil)
@@ -223,7 +232,7 @@ extension RegisterViewController : UITextFieldDelegate {
     
 }
 
-// it help in slecet the image from the camera and photo acees libarary
+//MARK: it help in select the image from the camera and photo acees libarary
 extension RegisterViewController : UIImagePickerControllerDelegate  , UINavigationControllerDelegate{
     
     func presentPhotoOption(){
@@ -275,3 +284,4 @@ extension RegisterViewController : UIImagePickerControllerDelegate  , UINavigati
     }
     
 }
+

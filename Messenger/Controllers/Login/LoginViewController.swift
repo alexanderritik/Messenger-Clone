@@ -8,6 +8,7 @@
 
 import UIKit
 import Firebase
+import FBSDKLoginKit
 
 class LoginViewController: UIViewController {
 
@@ -75,6 +76,12 @@ class LoginViewController: UIViewController {
         return button
     }()
     
+    let facebookloginButton : FBLoginButton = {
+        let button  = FBLoginButton()
+        button.permissions = ["email,public_profile"]
+        return button
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .white
@@ -86,11 +93,16 @@ class LoginViewController: UIViewController {
         emailField.delegate = self
         passwordField.delegate = self
         
+        facebookloginButton.delegate = self
+        
         view.addSubview(scrollView)
         scrollView.addSubview(imageView)
         scrollView.addSubview(emailField)
         scrollView.addSubview(passwordField)
         scrollView.addSubview(LoginButton)
+        
+        //adding facebook button
+        scrollView.addSubview(facebookloginButton)
     }
     
     override func viewWillLayoutSubviews() {
@@ -106,6 +118,8 @@ class LoginViewController: UIViewController {
         passwordField.frame = CGRect(x: 30, y: emailField.bottom+15, width: scrollView.width-60, height: 52)
         
         LoginButton.frame = CGRect(x: 30, y: passwordField.bottom+20, width: scrollView.width-60, height: 52)
+        
+        facebookloginButton.frame = CGRect(x: 30, y: LoginButton.bottom+20, width: scrollView.width-60, height: 52)
     }
     
     
@@ -176,6 +190,75 @@ extension LoginViewController : UITextFieldDelegate {
             LoginButtonDidTouch()
         }
         return true
+    }
+    
+}
+
+//MARK: For facebook login button delegate
+extension LoginViewController : LoginButtonDelegate {
+    
+    func loginButton(_ loginButton: FBLoginButton, didCompleteWith result: LoginManagerLoginResult?, error: Error?) {
+        
+        guard let token = result?.token?.tokenString else {
+            return
+        }
+        
+        //take the name photo and email from facebook
+        let facebookRequest = FBSDKLoginKit.GraphRequest(graphPath: "me",
+                                                         parameters: ["fields" : "email, name"],
+                                                         tokenString: token,
+                                                         version: nil,
+                                                         httpMethod: .get)
+        
+        facebookRequest.start { [weak self] (_, result , error) in
+            
+            guard let strongSelf = self else { return }
+            
+            guard let result = result as? [String : Any] , error == nil else {
+                print("Failed to get data request")
+                return
+            }
+            
+            print("\(result)")
+            
+            guard let username = result["name"] as? String , let email = result["email"] as? String else {
+                print("email and username is not found")
+                let errorAlert = Helper.error(title: "facebook login failed", message: "no email is found")
+                DispatchQueue.main.async {
+                    strongSelf.present(errorAlert , animated: true)
+                }
+                return
+            }
+            strongSelf.fillUserDetailFirebase(username: username, email: email, token: token)
+        }
+        
+        
+    }
+    
+    func loginButtonDidLogOut(_ loginButton: FBLoginButton) {
+        //nothing
+    }
+    
+    
+    func fillUserDetailFirebase(username:String , email: String , token : String){
+        
+        DatabaseManager.shared.insertUser(with: ChatAppUser(username: username ,email : email))
+        
+        let credential = FacebookAuthProvider.credential(withAccessToken: token)
+        
+        Auth.auth().signIn(with: credential) { [weak self] (result, error) in
+            
+            guard let strongSelf = self else { return }
+            
+            guard result != nil , error == nil else {
+                print("You cannot sigin in due to MFA or other problem")
+                return
+            }
+            
+            print("Scuessfully signed with facebook")
+            strongSelf.navigationController?.dismiss(animated: true, completion: nil)
+
+        }
     }
     
 }

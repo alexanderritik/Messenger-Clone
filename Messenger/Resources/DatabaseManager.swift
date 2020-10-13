@@ -25,7 +25,8 @@ extension DatabaseManager {
     public func insertUser(with user : ChatAppUser){
         guard let uid = Helper.uniqueId() else { return }
         database.child(uid).setValue([
-            "username" : user.username
+            "username" : user.username,
+            "email" : user.email
             ])
     }
     
@@ -34,5 +35,6 @@ extension DatabaseManager {
 
 struct ChatAppUser {
     let username:String
+    let email : String
     // let profileImage : URL
 }
