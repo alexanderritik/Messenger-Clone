@@ -10,21 +10,53 @@ import UIKit
 
 class NewConversationViewController: UIViewController {
 
+    private let searchBar : UISearchBar = {
+        let searchBar = UISearchBar()
+        searchBar.placeholder = "Search user here ... "
+        return searchBar
+    }()
+    
+    private let tableView : UITableView = {
+        let table = UITableView()
+        table.isHidden = true
+        table.register(UITableView.self, forCellReuseIdentifier: "cell")
+        return table
+    }()
+    
+    private let noResult : UILabel = {
+       let label = UILabel()
+        label.isHidden = true
+        label.text = "No user found!"
+        label.textColor = .gray
+        label.textAlignment = .center
+        label.font = .systemFont(ofSize: 21, weight: .medium)
+        return label
+    }()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        searchBar.delegate = self
+        
+        navigationController?.navigationBar.topItem?.titleView = searchBar
+        
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(cancelSearch))
+        
+        view.backgroundColor = .cyan
         // Do any additional setup after loading the view.
+        
+    }
+
+}
+
+extension NewConversationViewController : UISearchBarDelegate {
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        
     }
     
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+    @objc private func cancelSearch(){
+        dismiss(animated: true, completion: nil)
     }
-    */
-
+    
 }
