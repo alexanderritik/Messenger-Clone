@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Firebase
 
 class ProfileViewController: UIViewController {
 
@@ -17,14 +18,61 @@ class ProfileViewController: UIViewController {
     }
     
 
-    /*
-    // MARK: - Navigation
+}
 
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destination.
-        // Pass the selected object to the new view controller.
+//MARK: - It is an more option in profile bar button icon
+extension ProfileViewController {
+    
+    @IBAction func moreOption(_ sender: Any) {
+        
+        let alert = UIAlertController(title: "Setting", message: "option available", preferredStyle: .actionSheet)
+        
+        let logout = UIAlertAction(title: "Logout", style: .default) {[weak self] _ in
+            guard let strongSelf = self else { return }
+            strongSelf.doYouReallyWantToExist()
+        }
+        
+        let setting = UIAlertAction(title: "Setting", style: .default) {[weak self] _ in
+            print("In the setting")
+        }
+        
+        let cancel = UIAlertAction(title: "No", style: .cancel) { [weak self] _ in
+            guard let strongSelf = self else { return }
+            strongSelf.dismiss(animated: true, completion: nil)
+        }
+        
+        alert.addAction(logout)
+        alert.addAction(setting)
+        alert.addAction(cancel)
+        present(alert,animated: true)
     }
-    */
-
+    
+    func doYouReallyWantToExist(){
+        let alert = UIAlertController(title: "Logout", message: "Really want to logout?", preferredStyle: .alert)
+        
+        let yes = UIAlertAction(title: "Yes", style: .default) { [weak self]  _ in
+            
+            guard let strongSelf = self else { return }
+            do {
+                try Auth.auth().signOut()
+                let vc = LoginViewController()
+                let nav = UINavigationController(rootViewController: vc)
+                nav.modalPresentationStyle = .fullScreen
+                strongSelf.present(nav , animated: true)
+            }catch{
+                print("Failed to logout")
+            }
+        }
+        
+        let no = UIAlertAction(title: "No", style: .cancel) { [weak self] _ in
+            guard let strongSelf = self else { return }
+            strongSelf.dismiss(animated: true, completion: nil)
+        }
+        
+        alert.addAction(yes)
+        alert.addAction(no)
+        self.present(alert , animated:  true)
+    }
+    
+    
 }

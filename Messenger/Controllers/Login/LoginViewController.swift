@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Firebase
 
 class LoginViewController: UIViewController {
 
@@ -107,6 +108,7 @@ class LoginViewController: UIViewController {
         LoginButton.frame = CGRect(x: 30, y: passwordField.bottom+20, width: scrollView.width-60, height: 52)
     }
     
+    
     @objc func registerButtonDidTouch(){
         print("register clecked")
         
@@ -117,6 +119,7 @@ class LoginViewController: UIViewController {
         navigationController?.pushViewController(vc, animated: true)
     }
 
+    
     @objc func LoginButtonDidTouch(){
         print("Login is clicked")
         
@@ -129,7 +132,35 @@ class LoginViewController: UIViewController {
             present(error, animated:  true)
             return
         }
-
+        
+        //firebase login
+        let spinner = UIViewController.displayLoading(withView: self.view)
+        
+        Auth.auth().signIn(withEmail: email, password: password) { [weak self] (result, error) in
+            guard let strongSelf = self else { return }
+            
+            if error == nil {
+                DispatchQueue.main.async {
+                    //remove spinner
+                    UIViewController.removingLoading(spinner: spinner)
+                }
+                print("enter to database")
+                strongSelf.navigationController?.dismiss(animated: true, completion: nil)
+            }
+                
+            else if let error = error{
+                DispatchQueue.main.async {
+                    UIViewController.removingLoading(spinner: spinner)
+                }
+                let alertError = Helper.loginSignError(error: error , title: "Email or password is invalid")
+                DispatchQueue.main.async {
+                    strongSelf.present(alertError , animated: true)
+                }
+            }
+            
+        }
+        
+        
     }
     
 }

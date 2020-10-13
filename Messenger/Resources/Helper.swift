@@ -8,6 +8,7 @@
 
 import Foundation
 import UIKit
+import FirebaseAuth
 
 class Helper {
     
@@ -22,5 +23,51 @@ class Helper {
         alert.addAction(okAction)
         
         return alert
+    }
+    
+    
+    class func loginSignError(error: Error , title: String )-> UIAlertController {
+        
+        var errorTitle: String = "\(title) Error"
+        
+        var errorMessage : String = "There was a problem \(title)ing in"
+        
+        if let errorCode = AuthErrorCode(rawValue: error._code) {
+            
+            switch errorCode {
+            
+            case .wrongPassword :
+                errorTitle = "Wrong password"
+                errorMessage = "Password you entered is wrong! "
+                
+            case .invalidEmail :
+                errorTitle = "Email Invalid"
+                errorMessage = "Email you entered is wrong! "
+            
+            case .weakPassword :
+                errorTitle = "Password Weak"
+                errorMessage = "Password is weak! "
+                
+            case .emailAlreadyInUse :
+                errorTitle = "Email is Already in use"
+                errorMessage = "Please provide a different email ! "
+
+            default :
+                break
+            }
+        }
+        
+        let alert = Helper.error(title: errorTitle, message: errorMessage)
+        return alert
+    }
+
+}
+
+
+extension Helper {
+    // for getting current userid
+    class func uniqueId()->String?{
+        guard let uid = Auth.auth().currentUser?.uid else { return nil }
+        return uid
     }
 }

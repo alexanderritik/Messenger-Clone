@@ -1,4 +1,7 @@
+
+
 import UIKit
+import FirebaseAuth
 
 class RegisterViewController: UIViewController {
 
@@ -157,6 +160,41 @@ class RegisterViewController: UIViewController {
         }
         
         //firbase login
+        
+        //spinner to avoid freeze of UI
+        let spinner = UIViewController.displayLoading(withView: self.view)
+        
+        
+        Auth.auth().createUser(withEmail: email, password: password) { [weak self] (result, error) in
+            guard let strongSelf = self else { return }
+
+            if error == nil {
+                DispatchQueue.main.async {
+                    //remove spinner
+                    UIViewController.removingLoading(spinner: spinner)
+                }
+                
+                print("welcome to database")
+                DatabaseManager.shared.insertUser(with: ChatAppUser(username: username))
+                
+                //back to navigation controller where it is instaniate
+                strongSelf.navigationController?.dismiss(animated: true, completion: nil)
+            }
+            else if let error = error {
+                
+                DispatchQueue.main.async {
+                    UIViewController.removingLoading(spinner: spinner)
+                }
+                                   
+                let alert = Helper.loginSignError(error: error , title: "Login" )
+                print("error to database")
+                DispatchQueue.main.async {
+                    strongSelf.present(alert ,animated: true ,completion: nil)
+                }
+            }
+        }
+        
+        
         
     }
     
