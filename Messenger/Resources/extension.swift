@@ -71,3 +71,8 @@ extension UIViewController {
     }
     
 }
+
+
+extension Notification.Name {
+    static let didLogInNotificationByGoogle  = Notification.Name("didLogInNotificationByGoogle")
+}

@@ -9,6 +9,7 @@
 import UIKit
 import Firebase
 import FBSDKLoginKit
+import GoogleSignIn
 
 class LoginViewController: UIViewController {
 
@@ -76,11 +77,18 @@ class LoginViewController: UIViewController {
         return button
     }()
     
-    let facebookloginButton : FBLoginButton = {
+    private let facebookloginButton : FBLoginButton = {
         let button  = FBLoginButton()
         button.permissions = ["email,public_profile"]
         return button
     }()
+    
+    private let GoogleloginButton : GIDSignInButton = {
+        let button  = GIDSignInButton()
+        return button
+    }()
+    
+    private var loginObserver : NSObjectProtocol?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -95,14 +103,35 @@ class LoginViewController: UIViewController {
         
         facebookloginButton.delegate = self
         
+        //observer for getting to chat view controller since it is in google
+        loginObserver = NotificationCenter.default.addObserver(forName:  Notification.Name.didLogInNotificationByGoogle,
+                                                               object: nil,
+                                                               queue: .main) { [weak self] _ in
+                                                                guard let strongSelf = self else { return }
+                                                                strongSelf.navigationController?.dismiss(animated: true, completion: nil)
+        }
+        GIDSignIn.sharedInstance()?.presentingViewController = self
+        
+        
         view.addSubview(scrollView)
         scrollView.addSubview(imageView)
         scrollView.addSubview(emailField)
         scrollView.addSubview(passwordField)
         scrollView.addSubview(LoginButton)
         
+        //adding google button
+        scrollView.addSubview(GoogleloginButton)
+        
         //adding facebook button
         scrollView.addSubview(facebookloginButton)
+        
+    }
+    
+    //de inrialize observer
+    deinit {
+        if let observer = loginObserver {
+            NotificationCenter.default.removeObserver(observer)
+        }
     }
     
     override func viewWillLayoutSubviews() {
@@ -119,7 +148,9 @@ class LoginViewController: UIViewController {
         
         LoginButton.frame = CGRect(x: 30, y: passwordField.bottom+20, width: scrollView.width-60, height: 52)
         
-        facebookloginButton.frame = CGRect(x: 30, y: LoginButton.bottom+20, width: scrollView.width-60, height: 52)
+        GoogleloginButton.frame = CGRect(x: 30, y: LoginButton.bottom+20, width: scrollView.width-60, height: 52)
+        
+        facebookloginButton.frame = CGRect(x: 30, y: GoogleloginButton.bottom+20, width: scrollView.width-60, height: 52)
     }
     
     
@@ -171,15 +202,13 @@ class LoginViewController: UIViewController {
                     strongSelf.present(alertError , animated: true)
                 }
             }
-            
         }
-        
         
     }
     
 }
 
-// this help on clicking enter in the text it will goes to other field we can also do textEditing
+//MARK: this help on clicking enter in the text it will goes to other field we can also do textEditing
 extension LoginViewController : UITextFieldDelegate {
     
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {

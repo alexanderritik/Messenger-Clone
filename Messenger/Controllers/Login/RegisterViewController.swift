@@ -203,8 +203,6 @@ class RegisterViewController: UIViewController {
             }
         }
         
-        
-        
     }
     
     @objc func profileImageTouch(){

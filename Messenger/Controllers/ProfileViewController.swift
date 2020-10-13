@@ -8,6 +8,8 @@
 
 import UIKit
 import Firebase
+import FBSDKLoginKit
+import GoogleSignIn
 
 class ProfileViewController: UIViewController {
 
@@ -32,7 +34,7 @@ extension ProfileViewController {
             strongSelf.doYouReallyWantToExist()
         }
         
-        let setting = UIAlertAction(title: "Setting", style: .default) {[weak self] _ in
+        let setting = UIAlertAction(title: "Setting", style: .default) { _ in
             print("In the setting")
         }
         
@@ -54,11 +56,19 @@ extension ProfileViewController {
             
             guard let strongSelf = self else { return }
             do {
+                //logout from facebook
+                FBSDKLoginKit.LoginManager().logOut()
+                
+                //logout from google
+                GIDSignIn.sharedInstance().signOut()
+                
+                //lohout from firebase
                 try Auth.auth().signOut()
                 let vc = LoginViewController()
                 let nav = UINavigationController(rootViewController: vc)
                 nav.modalPresentationStyle = .fullScreen
                 strongSelf.present(nav , animated: true)
+                
             }catch{
                 print("Failed to logout")
             }

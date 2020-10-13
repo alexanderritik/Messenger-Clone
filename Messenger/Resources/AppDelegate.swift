@@ -13,10 +13,11 @@
 import UIKit
 import Firebase
 import FBSDKCoreKit
+import GoogleSignIn
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
-    
+class AppDelegate: UIResponder, UIApplicationDelegate  ,GIDSignInDelegate {
+        
     func application(
         _ application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?
@@ -28,6 +29,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             application,
             didFinishLaunchingWithOptions: launchOptions
         )
+        
+        GIDSignIn.sharedInstance()?.clientID = FirebaseApp.app()?.options.clientID
+        GIDSignIn.sharedInstance()?.delegate = self
 
         return true
     }
@@ -45,6 +49,43 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             annotation: options[UIApplication.OpenURLOptionsKey.annotation]
         )
 
+        return GIDSignIn.sharedInstance().handle(url)
+        
     }
 
+
+    func sign(_ signIn: GIDSignIn!, didSignInFor user: GIDGoogleUser!, withError error: Error!) {
+        guard error == nil else {
+            print("failed to sigIn by Google")
+            return
+        }
+        
+        guard let user = user else { return }
+        guard let email = user.profile.email else {return}
+        guard let username = user.profile.name else { return }
+        
+//        print(username , email)
+        
+        guard let authentication = user.authentication else { return }
+        let credential = GoogleAuthProvider.credential(withIDToken: authentication.idToken,accessToken: authentication.accessToken)
+        
+        Auth.auth().signIn(with: credential) { (result, error) in
+    
+            guard result != nil , error == nil else {
+                print("You cannot sigin in due to MFA or other problem")
+                return
+            }
+            print("Scuessfully signed with Google")
+            
+            DatabaseManager.shared.insertUser(with: ChatAppUser(username: username, email: email))
+            
+            NotificationCenter.default.post(name: Notification.Name.didLogInNotificationByGoogle , object : nil)
+        }
+        
+    }
+    
+    func sign(_ signIn: GIDSignIn!, didDisconnectWith user: GIDGoogleUser!, withError error: Error!) {
+        print("Google user disconnected")
+    }
+    
 }
