@@ -77,7 +77,40 @@ class AppDelegate: UIResponder, UIApplicationDelegate  ,GIDSignInDelegate {
             }
             print("Scuessfully signed with Google")
             
-            DatabaseManager.shared.insertUser(with: ChatAppUser(username: username, email: email))
+            let chatUser = ChatAppUser(username: username, email: email)
+            DatabaseManager.shared.insertUser(with: chatUser , completion: { sucess in
+                if sucess {
+                    
+                    if user.profile.hasImage {
+                        guard let url = user.profile.imageURL(withDimension: 200) else{return}
+                        print(url)
+                        URLSession.shared.dataTask(with: url, completionHandler: { (data, _ , _) in
+                            print("image upload sucesfully")
+                            guard let data = data else { return }
+                
+                            let filename = chatUser.profileImageFileName
+                            print(filename)
+                            StorageManager.shared.uploadProfilePicture(with: data, filename: filename) { (result) in
+                                switch result {
+                                case .failure(let error):
+                                    print(error)
+                                case .success(let downloadUrl):
+                                    UserDefaults.standard.set(downloadUrl, forKey: "profile_pic")
+                                    print(downloadUrl)
+                                }
+                            }
+                            
+                            }).resume()
+                    }
+                    
+                    else{
+                        print("cannot found image")
+                    }
+                    
+                }else{
+                    print("cannot upload image")
+                }
+            })
             
             NotificationCenter.default.post(name: Notification.Name.didLogInNotificationByGoogle , object : nil)
         }

@@ -22,12 +22,20 @@ final class DatabaseManager {
 extension DatabaseManager {
     
     ///Insert query
-    public func insertUser(with user : ChatAppUser){
+    public func insertUser(with user : ChatAppUser , completion : @escaping (Bool)-> Void){
         guard let uid = Helper.uniqueId() else { return }
         database.child(uid).setValue([
             "username" : user.username,
             "email" : user.email
-            ])
+            ] , withCompletionBlock: { (error, _ ) in
+                guard error == nil else {
+                    print("failed to write in database")
+                    completion(false)
+                    return
+                }
+                completion(true)
+        })
+        
     }
     
 }
@@ -37,4 +45,10 @@ struct ChatAppUser {
     let username:String
     let email : String
     // let profileImage : URL
+    
+    let currentId = Helper.uniqueId()!
+
+    var profileImageFileName : String {
+        return "\(currentId)_profile_Picture.png"
+    }
 }

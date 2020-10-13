@@ -234,7 +234,9 @@ extension LoginViewController : LoginButtonDelegate {
         
         //take the name photo and email from facebook
         let facebookRequest = FBSDKLoginKit.GraphRequest(graphPath: "me",
-                                                         parameters: ["fields" : "email, name"],
+                                                         parameters: ["fields" :
+                                                            "email,name,picture.type(large)"
+                                                            ],
                                                          tokenString: token,
                                                          version: nil,
                                                          httpMethod: .get)
@@ -250,15 +252,22 @@ extension LoginViewController : LoginButtonDelegate {
             
             print("\(result)")
             
-            guard let username = result["name"] as? String , let email = result["email"] as? String else {
+            guard
+                let username = result["name"] as? String ,
+                let email = result["email"] as? String,
+                let image = result["picture"] as? [String : Any],
+                let data = image["data"] as? [String : Any] ,
+                let imageUrl = data["url"] as? String else {
                 print("email and username is not found")
                 let errorAlert = Helper.error(title: "facebook login failed", message: "no email is found")
                 DispatchQueue.main.async {
                     strongSelf.present(errorAlert , animated: true)
                 }
+                //logout facebook if some error occured
+                FBSDKLoginKit.LoginManager().logOut()
                 return
             }
-            strongSelf.fillUserDetailFirebase(username: username, email: email, token: token)
+            strongSelf.fillUserDetailFirebase(username: username, email: email, token: token , imageUrl : imageUrl)
         }
         
         
@@ -269,9 +278,36 @@ extension LoginViewController : LoginButtonDelegate {
     }
     
     
-    func fillUserDetailFirebase(username:String , email: String , token : String){
+    func fillUserDetailFirebase(username:String , email: String , token : String , imageUrl :String){
         
-        DatabaseManager.shared.insertUser(with: ChatAppUser(username: username ,email : email))
+        
+        let chatUser = ChatAppUser(username: username, email: email)
+        
+        DatabaseManager.shared.insertUser(with: chatUser , completion: { sucess in
+            if sucess {
+                guard let url = URL(string : imageUrl) else { return }
+                
+                URLSession.shared.dataTask(with: url, completionHandler: { (data, _ , _) in
+                    guard let data = data else { return }
+                    
+                    print("image upload sucesfully")
+
+                    let filename = chatUser.profileImageFileName
+
+                    StorageManager.shared.uploadProfilePicture(with: data, filename: filename) { (result) in
+                        switch result {
+                        case .failure(let error):
+                            print(error)
+                        case .success(let downloadUrl):
+                            UserDefaults.standard.set(downloadUrl, forKey: "profile_pic")
+                            print(downloadUrl)
+                        }
+                    }
+                    
+                }).resume()
+            }
+            
+        })
         
         let credential = FacebookAuthProvider.credential(withAccessToken: token)
         
@@ -286,7 +322,6 @@ extension LoginViewController : LoginButtonDelegate {
             
             print("Scuessfully signed with facebook")
             strongSelf.navigationController?.dismiss(animated: true, completion: nil)
-
         }
     }
     

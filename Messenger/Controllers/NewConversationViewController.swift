@@ -8,7 +8,7 @@
 
 import UIKit
 
-class NewConversationViewController: UIViewController {
+class NewConversationViewController: UIViewController  {
 
     private let searchBar : UISearchBar = {
         let searchBar = UISearchBar()
@@ -19,7 +19,7 @@ class NewConversationViewController: UIViewController {
     private let tableView : UITableView = {
         let table = UITableView()
         table.isHidden = true
-        table.register(UITableView.self, forCellReuseIdentifier: "cell")
+        table.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
         return table
     }()
     
@@ -41,6 +41,8 @@ class NewConversationViewController: UIViewController {
         navigationController?.navigationBar.topItem?.titleView = searchBar
         
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Cancel", style: .plain, target: self, action: #selector(cancelSearch))
+        
+        searchBar.becomeFirstResponder()
         
         view.backgroundColor = .cyan
         // Do any additional setup after loading the view.
