@@ -183,7 +183,12 @@ class RegisterViewController: UIViewController {
                     UIViewController.removingLoading(spinner: spinner)
                 }
                 
+                // it is used to chache the username and email locally with this key
+                UserDefaults.standard.set(username, forKey: "username")
+                UserDefaults.standard.set(email, forKey: "email")
+                
                 print("welcome to database")
+                
                 let chatUser = ChatAppUser(username: username, email: email)
                 DatabaseManager.shared.insertUser(with: chatUser , completion: { sucess in
                     if sucess {

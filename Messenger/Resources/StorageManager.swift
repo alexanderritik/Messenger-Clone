@@ -56,4 +56,18 @@ class StorageManager {
         case failedToDownlaodUrl
     }
     
+    
+    public func downloadUrl(with path:String , completion: @escaping (Result<URL , Error>) -> Void){
+        
+        let reference = storage.child(path)
+        reference.downloadURL { (url, error) in
+            guard let url = url , error == nil else {
+                completion(.failure(StorageErrors.failedToDownlaodUrl))
+                return
+            }
+            completion(.success(url.absoluteURL))
+        }
+        
+    }
+    
 }

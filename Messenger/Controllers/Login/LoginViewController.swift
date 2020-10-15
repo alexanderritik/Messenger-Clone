@@ -190,6 +190,10 @@ class LoginViewController: UIViewController {
                     UIViewController.removingLoading(spinner: spinner)
                 }
                 print("enter to database")
+                
+                // it is used to chache the email locally with this key
+                UserDefaults.standard.set(email, forKey: "email")
+                
                 strongSelf.navigationController?.dismiss(animated: true, completion: nil)
             }
                 
@@ -280,6 +284,9 @@ extension LoginViewController : LoginButtonDelegate {
     
     func fillUserDetailFirebase(username:String , email: String , token : String , imageUrl :String){
         
+        // it is used to chache the username and email locally with this key
+        UserDefaults.standard.set(username, forKey: "username")
+        UserDefaults.standard.set(email, forKey: "email")
         
         let chatUser = ChatAppUser(username: username, email: email)
         
@@ -299,6 +306,7 @@ extension LoginViewController : LoginButtonDelegate {
                         case .failure(let error):
                             print(error)
                         case .success(let downloadUrl):
+                            // it is used to chache the downloadUrl locally with this key
                             UserDefaults.standard.set(downloadUrl, forKey: "profile_pic")
                             print(downloadUrl)
                         }

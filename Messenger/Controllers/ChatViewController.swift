@@ -8,6 +8,7 @@
 
 import UIKit
 import MessageKit
+import InputBarAccessoryView
 
 struct Message : MessageType {
     
@@ -29,32 +30,97 @@ struct Sender : SenderType {
 
 
 class ChatViewController: MessagesViewController {
-
+    
+    public var isNewConversation = false
+    public var otherUserId : String
+    
+    // it help to get date in form of long string
+    public static let dateFormatter: DateFormatter = {
+        let date = DateFormatter()
+        date.dateStyle = .medium
+        date.timeStyle = .long
+        date.locale = .current
+        return date
+    }()
+    
     private var messages = [Message]()
-    private var selfSender = Sender(senderId: "1", displayName: "Alex", photoUrl: "")
+    private var selfSender : Sender?
+    
+    let myid = Helper.uniqueId()!
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
         view.backgroundColor = .systemPink
         
-        messages.append(Message(sender: selfSender, messageId: "1", sentDate: Date(), kind: .text("hello world")))
-        
-        messages.append(Message(sender: selfSender, messageId: "1", sentDate: Date(), kind: .text("hello Alex can you talk to me")))
+        let newsender = Sender(senderId: otherUserId, displayName: navigationItem.title!    , photoUrl: "")
+        selfSender = newsender
         
         messagesCollectionView.messagesDataSource = self
         messagesCollectionView.messagesLayoutDelegate = self
         messagesCollectionView.messagesDisplayDelegate = self
+        messageInputBar.delegate = self
         // Do any additional setup after loading the view.
     }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        messageInputBar.inputTextView.becomeFirstResponder()
+    }
+    
+    init(with uid: String) {
+        self.otherUserId = uid
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     
 }
 
 
+extension ChatViewController : InputBarAccessoryViewDelegate{
+    
+    func inputBar(_ inputBar: InputBarAccessoryView, didPressSendButtonWith text: String) {
+        guard !text.replacingOccurrences(of: " ", with: "").isEmpty ,
+             let selfsender = selfSender    else {
+            return
+        }
+        
+        let date = Self.dateFormatter.string(from: Date())
+        let messageUniqueId = "\(otherUserId)-\(myid)-\(date)"
+        
+        print(text , otherUserId , date , messageUniqueId)
+        
+        let message = Message(sender: selfsender,
+                              messageId: messageUniqueId,
+                              sentDate: Date(),
+                              kind: .text(text))
+        
+        if isNewConversation {
+            // when new conversation first time
+            DatabaseManager.shared.createNewConversation(with: otherUserId, message: message) { (status) in
+                if status {
+                    print("inseted sucesfully")
+                }else{
+                    print("It is inseted unsuscessfully")
+                }
+            }
+        }
+        else{
+            // when you already had chat
+        }
+        
+    }
+    
+}
+
 extension ChatViewController : MessagesDataSource, MessagesLayoutDelegate , MessagesDisplayDelegate {
     
     func currentSender() -> SenderType {
-        selfSender
+        selfSender!
     }
     
     func messageForItem(at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) -> MessageType {

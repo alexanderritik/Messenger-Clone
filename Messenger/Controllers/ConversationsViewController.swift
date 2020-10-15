@@ -28,6 +28,8 @@ class ConversationsViewController: UIViewController  {
         return label
     }()
     
+    private var previousChat = [[String:String]]()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -42,6 +44,13 @@ class ConversationsViewController: UIViewController  {
         
         view.addSubview(tableView)
         view.addSubview(noConversationLabel)
+        
+        
+        let chat1 = [
+                    "name": "dummy data",
+                    "uid": "IcX04B5lLWNGZxkSPIriYvreVbw1"
+                    ]
+        previousChat.append(chat1)
     }
     
     override func viewDidLayoutSubviews() {
@@ -58,11 +67,23 @@ class ConversationsViewController: UIViewController  {
     
     @objc private func newChat(){
         let vc = NewConversationViewController()
+        vc.completion = { result in
+            self.createUser(result: result)
+        }
         let nav = UINavigationController(rootViewController: vc)
         present(nav , animated: true)
         print("New chat available")
     }
     
+    func createUser(result : [String:String]){
+        
+        guard let uid = result["uid"] , let name = result["name"] else { return }
+        
+        let vc = ChatViewController(with: uid)
+        vc.title = name
+        vc.navigationItem.largeTitleDisplayMode = .never
+        navigationController?.pushViewController(vc, animated: true)
+    }
     
     func loginCheck(){
         
@@ -86,12 +107,12 @@ extension ConversationsViewController :  UITableViewDelegate, UITableViewDataSou
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 1
+        return previousChat.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell  = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        cell.textLabel?.text = "Hello world"
+        cell.textLabel?.text = previousChat[indexPath.row]["name"] 
         cell.accessoryType = .disclosureIndicator
         return cell
     }
@@ -101,8 +122,11 @@ extension ConversationsViewController :  UITableViewDelegate, UITableViewDataSou
         
         print("table view did select at")
         
-        let vc = ChatViewController()
-        vc.title = "AlexanderRitik"
+        guard let uid = previousChat[indexPath.row]["uid"] ,
+              let name = previousChat[indexPath.row]["name"] else { return }
+        
+        let vc = ChatViewController(with : uid)
+        vc.title = name
         vc.navigationItem.largeTitleDisplayMode = .never
         navigationController?.pushViewController(vc, animated: true)
     }
