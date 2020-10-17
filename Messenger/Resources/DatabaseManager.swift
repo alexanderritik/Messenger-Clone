@@ -118,9 +118,193 @@ struct ChatAppUser {
 //MARK: this is used to send message to
 extension DatabaseManager {
     
+    /*
+      "UUISIDIIhxiAI": {
+            "messages" :[
+                {
+                    "id" : String,
+                    "type" : text , video , photo,
+                    "content" : String,
+                    "date" : Date(),
+                    "sender_id": String,
+                    "isRead" : True/false
+                }
+            ]
+        }
+     
+     
+        Conversation => [
+            [
+                "conversation_id" : "UUISIDIIhxiAI",
+                "otherUserId" : String,
+                "latestMessage" => {
+                    "date" : Date(),
+                    "latestMessage" : String,
+                    "isRead" : True/false,
+                }
+            ]
+        ]
+     
+     */
+    
     ///create new user with the current target user id
     public func createNewConversation(with otherUserID: String , message:Message , completion : @escaping (Bool) -> Void) {
         
+        guard let uid = Helper.uniqueId() else {
+            print("current user not found")
+            completion(false)
+            return
+        }
+        
+        
+        let ref = database.child(uid)
+        ref.observeSingleEvent(of: .value) {[weak self] (snapshot) in
+            
+            guard var userNode = snapshot.value as? [String:Any] else {
+                print("user not found")
+                completion(false)
+                return
+            }
+            
+            //conversation id
+            let conversationId = "conversation_\(message.messageId)"
+            
+            //convert date in string
+            let messageDate = message.sentDate
+            let dateString = ChatViewController.dateFormatter.string(from: messageDate)
+            
+            //convert type of date text
+            var messageTxt = ""
+            switch message.kind {
+            case .text(let text):
+                messageTxt = text
+            case .attributedText(_):
+                break
+            case .photo(_):
+                break
+            case .video(_):
+                break
+            case .location(_):
+                break
+            case .emoji(_):
+                break
+            case .audio(_):
+                break
+            case .contact(_):
+                break
+            case .custom(_):
+                break
+            }
+            
+            let Newconversation : [String:Any] = [
+                "id" : conversationId,
+                "otherUserId" : otherUserID,
+                "latestMessage" :[
+                    "date" : dateString,
+                    "latestMessage" : messageTxt,
+                    "isRead" : false,
+                ]
+            ]
+            
+//            print(Newconversation)
+            
+            if var conversation = userNode["conversation"] as? [[String:Any]] {
+                //conversation array exist for cuurent user
+                //you shoud append
+                
+                conversation.append(Newconversation)
+                userNode["conversation"] = conversation
+                
+                ref.setValue(userNode) { (error, _) in
+                    guard error == nil else {
+                        completion(false)
+                        return
+                    }
+                    
+                    self?.finishCreatingFunction(conversationId: conversationId, message: message, completion: completion)
+                }
+                
+            }else{
+                // conversation array donot exist for current user
+                //you should create it
+                userNode["conversation"] = [
+                    Newconversation
+                ]
+                
+                ref.setValue(userNode) { (error, _) in
+                    guard error == nil else {
+                        completion(false)
+                        return
+                    }
+                    self?.finishCreatingFunction(conversationId: conversationId, message: message, completion: completion)
+                }
+                
+            }
+            
+        }
+        
+    }
+    
+    private func finishCreatingFunction(conversationId : String , message : Message , completion : @escaping (Bool)-> Void){
+        
+        guard let uid = Helper.uniqueId() else {
+            print("current user not found")
+            completion(false)
+            return
+        }
+        
+        //convert date in string
+        let messageDate = message.sentDate
+        let dateString = ChatViewController.dateFormatter.string(from: messageDate)
+        
+        //convert type of date text
+        var messageTxt = ""
+        var type = ""
+        switch message.kind {
+        case .text(let text):
+            messageTxt = text
+            type = "text"
+        case .attributedText(_):
+            break
+        case .photo(_):
+            break
+        case .video(_):
+            break
+        case .location(_):
+            break
+        case .emoji(_):
+            break
+        case .audio(_):
+            break
+        case .contact(_):
+            break
+        case .custom(_):
+            break
+        }
+        
+        
+        let newMessage : [String : Any] = [
+                "id" : conversationId,
+                "type" : type,
+                "content" : messageTxt,
+                "date" : dateString,
+                "sender_id": uid,
+                "isRead" : false
+        ]
+        
+        let value : [String :Any] = [
+            "messages" : [
+                newMessage
+            ]
+        ]
+        
+        database.child(conversationId).setValue(value) { (error, _) in
+            guard error == nil else {
+                completion(false)
+                return
+            }
+            completion(true)
+        }
     }
     
     ///Fetch and return all the mesage from the user id

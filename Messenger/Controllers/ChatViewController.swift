@@ -31,7 +31,7 @@ struct Sender : SenderType {
 
 class ChatViewController: MessagesViewController {
     
-    public var isNewConversation = false
+    public var isNewConversation = true
     public var otherUserId : String
     
     // it help to get date in form of long string
