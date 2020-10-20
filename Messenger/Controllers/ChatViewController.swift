@@ -31,8 +31,9 @@ struct Sender : SenderType {
 
 class ChatViewController: MessagesViewController {
     
-    public var isNewConversation = true
-    public var otherUserId : String
+    private var isNewConversation = true
+    private var otherUserId : String
+    private var conversationId : String?
     
     // it help to get date in form of long string
     public static let dateFormatter: DateFormatter = {
@@ -53,14 +54,15 @@ class ChatViewController: MessagesViewController {
 
         view.backgroundColor = .systemPink
         
-        let newsender = Sender(senderId: otherUserId, displayName: navigationItem.title!    , photoUrl: "")
+        let newsender = Sender(senderId: myid, displayName: navigationItem.title! , photoUrl: "")
         selfSender = newsender
         
         messagesCollectionView.messagesDataSource = self
         messagesCollectionView.messagesLayoutDelegate = self
         messagesCollectionView.messagesDisplayDelegate = self
+        
         messageInputBar.delegate = self
-        // Do any additional setup after loading the view.
+        // Do any additional setup after loading the view.        
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -68,15 +70,46 @@ class ChatViewController: MessagesViewController {
         messageInputBar.inputTextView.becomeFirstResponder()
     }
     
-    init(with uid: String) {
+    init(with uid: String , conId : String?) {
         self.otherUserId = uid
+        self.conversationId = conId
         super.init(nibName: nil, bundle: nil)
+        
+        if let conversatinId = conversationId {
+            listenForMessage(id: conversatinId)
+        }
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
+    
+    private func listenForMessage(id : String){
+        
+        DatabaseManager.shared.getAllMessageConveration(with: id) {[weak self] (result) in
+            
+            guard let strongSelf = self else { return }
+            
+            switch result {
+                
+            case.success(let message):
+                guard !message.isEmpty else { return }
+                
+                strongSelf.messages = message
+                self?.isNewConversation = false
+                DispatchQueue.main.async {
+                    strongSelf.messagesCollectionView.reloadDataAndKeepOffset()
+                }
+                
+            case .failure(let error):
+                print("unable to downlaod chats \(error)")
+                
+            }
+            
+        }
+        
+    }
     
 }
 
@@ -101,9 +134,10 @@ extension ChatViewController : InputBarAccessoryViewDelegate{
         
         if isNewConversation {
             // when new conversation first time
-            DatabaseManager.shared.createNewConversation(with: otherUserId, message: message) { (status) in
+            DatabaseManager.shared.createNewConversation(with: otherUserId, name: self.title!, message: message) { (status) in
                 if status {
                     print("inseted sucesfully")
+                    self.isNewConversation = false
                 }else{
                     print("It is inseted unsuscessfully")
                 }
@@ -111,6 +145,14 @@ extension ChatViewController : InputBarAccessoryViewDelegate{
         }
         else{
             // when you already had chat
+            guard let conversationId = conversationId else {return }
+            DatabaseManager.shared.sendMessage(to: conversationId, otherUserId: otherUserId , name: self.title! , message: message) { (status) in
+                if status {
+                    print("You have talked already")
+                }else{
+                    print("It is inseted unsuscessfully")
+                }
+            }
         }
         
     }
@@ -120,7 +162,10 @@ extension ChatViewController : InputBarAccessoryViewDelegate{
 extension ChatViewController : MessagesDataSource, MessagesLayoutDelegate , MessagesDisplayDelegate {
     
     func currentSender() -> SenderType {
-        selfSender!
+        if let sender = selfSender {
+            return sender
+        }
+        fatalError("something went wrong")
     }
     
     func messageForItem(at indexPath: IndexPath, in messagesCollectionView: MessagesCollectionView) -> MessageType {
@@ -130,5 +175,7 @@ extension ChatViewController : MessagesDataSource, MessagesLayoutDelegate , Mess
     func numberOfSections(in messagesCollectionView: MessagesCollectionView) -> Int {
         return messages.count
     }
+    
+    
     
 }

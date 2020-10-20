@@ -58,7 +58,7 @@ class StorageManager {
     
     
     public func downloadUrl(with path:String , completion: @escaping (Result<URL , Error>) -> Void){
-        
+        print(path)
         let reference = storage.child(path)
         reference.downloadURL { (url, error) in
             guard let url = url , error == nil else {

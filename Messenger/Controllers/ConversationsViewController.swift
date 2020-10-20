@@ -9,12 +9,28 @@
 import UIKit
 import Firebase
 
-class ConversationsViewController: UIViewController  {
+struct Converstaion {
+    let id : String
+    let name : String
+    let otherUserId :  String
+    let latestMessage : LatestMessage
+}
 
+struct LatestMessage {
+    let date : String
+    let text : String
+    let isRead  : Bool
+}
+
+class ConversationsViewController: UIViewController  {
+    
+    private var conversation = [Converstaion]()
+    
     private let tableView : UITableView = {
         let table = UITableView()
         table.isHidden = true
-        table.register(UITableViewCell.self , forCellReuseIdentifier: "cell")
+        table.register(ConversationTableViewCell.self ,
+                       forCellReuseIdentifier: ConversationTableViewCell.identifier)
         return table
     }()
     
@@ -28,7 +44,7 @@ class ConversationsViewController: UIViewController  {
         return label
     }()
     
-    private var previousChat = [[String:String]]()
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -44,13 +60,10 @@ class ConversationsViewController: UIViewController  {
         
         view.addSubview(tableView)
         view.addSubview(noConversationLabel)
+       
+        // getting updated on listen any new message
+        startListeningForConversation()
         
-        
-        let chat1 = [
-                    "name": "dummy data",
-                    "uid": "IcX04B5lLWNGZxkSPIriYvreVbw1"
-                    ]
-        previousChat.append(chat1)
     }
     
     override func viewDidLayoutSubviews() {
@@ -63,6 +76,7 @@ class ConversationsViewController: UIViewController  {
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         loginCheck()
+        tableView.reloadData()
     }
     
     @objc private func newChat(){
@@ -79,7 +93,7 @@ class ConversationsViewController: UIViewController  {
         
         guard let uid = result["uid"] , let name = result["name"] else { return }
         
-        let vc = ChatViewController(with: uid)
+        let vc = ChatViewController(with: uid, conId: nil)
         vc.title = name
         vc.navigationItem.largeTitleDisplayMode = .never
         navigationController?.pushViewController(vc, animated: true)
@@ -107,13 +121,15 @@ extension ConversationsViewController :  UITableViewDelegate, UITableViewDataSou
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return previousChat.count
+        return conversation.count
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell  = tableView.dequeueReusableCell(withIdentifier: "cell", for: indexPath)
-        cell.textLabel?.text = previousChat[indexPath.row]["name"] 
-        cell.accessoryType = .disclosureIndicator
+        let cell  = tableView.dequeueReusableCell(withIdentifier: ConversationTableViewCell.identifier,
+                                                  for: indexPath) as! ConversationTableViewCell
+        
+        // to fill value at correct place
+        cell.configure(with: conversation[indexPath.row])
         return cell
     }
     
@@ -121,14 +137,15 @@ extension ConversationsViewController :  UITableViewDelegate, UITableViewDataSou
         tableView.deselectRow(at: indexPath, animated: true)
         
         print("table view did select at")
-        
-        guard let uid = previousChat[indexPath.row]["uid"] ,
-              let name = previousChat[indexPath.row]["name"] else { return }
-        
-        let vc = ChatViewController(with : uid)
-        vc.title = name
+        let convey = conversation[indexPath.row]
+        let vc = ChatViewController(with : convey.otherUserId , conId : convey.id)
+        vc.title = convey.name
         vc.navigationItem.largeTitleDisplayMode = .never
         navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 120
     }
     
 }
@@ -139,5 +156,30 @@ extension ConversationsViewController {
     
     func fetchConversation(){
         tableView.isHidden = false
+    }
+    
+    
+    func startListeningForConversation(){
+        
+        guard let uniqueId = Helper.uniqueId() else { return }
+        
+        DatabaseManager.shared.getAllConversation(for: uniqueId) {[weak self] (result) in
+            
+            guard let strongSelf = self else { return }
+            
+            switch result {
+            case .failure(let error):
+                print("New error in listen chat \(error)")
+            case .success(let conversation):
+                
+                guard !conversation.isEmpty else {  return  }
+                self?.conversation = conversation
+                
+                DispatchQueue.main.async {
+                    strongSelf.tableView.reloadData()
+                }
+            }
+        }
+        
     }
 }
