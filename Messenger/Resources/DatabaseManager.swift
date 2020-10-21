@@ -8,6 +8,7 @@
 
 import Foundation
 import FirebaseDatabase
+import MessageKit
 
 final class DatabaseManager {
     
@@ -392,9 +393,30 @@ extension DatabaseManager {
                         let date = ChatViewController.dateFormatter.date(from: dateString),
                         let _ = dictionary["isRead"] as? Bool ,
                         let message = dictionary["content"] as? String,
-                        let _ = dictionary["type"] else {
+                        let type = dictionary["type"] as? String else {
                             return nil
                         }
+                    
+                var kind: MessageKind?
+                
+                if type == "photo" {
+                    // photo
+                    guard let imageUrl = URL(string: message),
+                          let placeholder = UIImage(systemName: "tray.and.arrow.down") else { return nil }
+                    
+                    let media = Media(url: imageUrl,
+                                      image: nil,
+                                      placeholderImage: placeholder,
+                                      size: CGSize(width: 300, height: 300))
+                    
+                    kind = .photo(media)
+                }else{
+                    // media
+                    kind = .text(message)
+                }
+                
+                guard let finalKind = kind else { return nil }
+                
                         let sender = Sender(senderId: otherUserId,
                                             displayName: name,
                                             photoUrl: "")
@@ -402,7 +424,7 @@ extension DatabaseManager {
                         let msg = Message(sender: sender,
                                           messageId: messageid ,
                                           sentDate: date,
-                                          kind: .text(message))
+                                          kind: finalKind)
                         return msg
                 }
     
@@ -441,8 +463,11 @@ extension DatabaseManager {
                 type = "text"
             case .attributedText(_):
                 break
-            case .photo(_):
-                break
+            case .photo(let mediaItem):
+                if let targetUrlString = mediaItem.url?.absoluteString{
+                    messageTxt = targetUrlString
+                }
+                type = "photo"
             case .video(_):
                 break
             case .location(_):

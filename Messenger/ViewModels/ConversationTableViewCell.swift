@@ -32,10 +32,10 @@ class ConversationTableViewCell: UITableViewCell {
        return label
     }()
     
-    let countMessage:UIView = {
+    let onlineView: UIView = {
         let img = UIView()
         img.translatesAutoresizingMaskIntoConstraints = false
-        img.layer.cornerRadius = 5
+        img.backgroundColor = UIColor.green
         return img
     }()
         
@@ -56,8 +56,9 @@ class ConversationTableViewCell: UITableViewCell {
         contentView.addSubview(userImage)
         contentView.addSubview(userlabel)
         contentView.addSubview(messagelabel)
-        contentView.addSubview(countMessage)
+        contentView.addSubview(onlineView)
         
+        onlineView.layer.cornerRadius = 7.5
     }
     
     required init?(coder: NSCoder) {
@@ -67,24 +68,22 @@ class ConversationTableViewCell: UITableViewCell {
     override func layoutSubviews() {
         super.layoutSubviews()
         
-
-            
         userImage.frame = CGRect(x: 10, y: 10, width: 100, height: 100)
         
         userlabel.frame = CGRect(x: userImage.right + 10,
-                                 y: 10,
+                                 y: 15,
                                  width: contentView.width - 20 - userImage.width ,
-                                 height: (contentView.height - 25)/2 )
+                                 height: 25)
         
         messagelabel.frame = CGRect(x: userImage.right + 10,
                                     y: userlabel.bottom + 2 ,
                                     width: contentView.width - 20 - userImage.width ,
-                                    height: (contentView.height - 25)/2 )
+                                    height: 30 )
         
-        countMessage.frame = CGRect(x: userlabel.right + 10 ,
-                                    y: 10,
-                                    width: 10,
-                                    height: 10)
+        onlineView.frame = CGRect(x: userImage.right - 8  ,
+                                    y: messagelabel.bottom + 8,
+                                    width: 15,
+                                    height: 15)
     
     }
     
