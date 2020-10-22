@@ -1,17 +1,19 @@
 //
-//  ConversationTableViewCell.swift
+//  newConversationCell.swift
 //  Messenger
 //
-//  Created by Ritik Srivastava on 20/10/20.
+//  Created by Ritik Srivastava on 23/10/20.
 //  Copyright © 2020 Ritik Srivastava. All rights reserved.
 //
 
-import UIKit
+import Foundation
+
+
 import SDWebImage
 
-class ConversationTableViewCell: UITableViewCell {
+class newConversationCell: UITableViewCell {
 
-    static let identifier = "ConversationTableViewCell"
+    static let identifier = "newConversationCell"
     
     private let containerView : UIView = {
         let view = UIView()
@@ -35,22 +37,8 @@ class ConversationTableViewCell: UITableViewCell {
        return label
     }()
     
-    let onlineView: UIView = {
-        let img = UIView()
-        img.translatesAutoresizingMaskIntoConstraints = false
-        img.backgroundColor = UIColor.green
-        return img
-    }()
-        
-    private var messagelabel : UILabel = {
-       let label = UILabel()
-       label.font = UIFont.boldSystemFont(ofSize: 14)
-        
-       label.layer.cornerRadius = 5
-       label.clipsToBounds = true
-       label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
+
+
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
@@ -59,8 +47,7 @@ class ConversationTableViewCell: UITableViewCell {
         
         containerView.addSubview(userImage)
         containerView.addSubview(userlabel)
-        containerView.addSubview(messagelabel)
-        containerView.addSubview(onlineView)
+
     
     }
     
@@ -85,40 +72,32 @@ class ConversationTableViewCell: UITableViewCell {
                                  width: containerView.width - 20 - userImage.width ,
                                  height: 20)
         
-        messagelabel.frame = CGRect(x: userImage.right + 10,
-                                    y: userlabel.bottom + 2 ,
-                                    width: containerView.width - 20 - userImage.width ,
-                                    height: 30 )
-        
-        onlineView.frame = CGRect(x: userImage.right - 18  ,
-                                    y: messagelabel.bottom ,
-                                    width: 12,
-                                    height: 12)
-        onlineView.layer.cornerRadius = onlineView.width / 2
     }
     
-    public func configure(with model: Converstaion){
+    public func configure(with model: [String : String]){
         print(model)
         
-        let path = "images/\(model.otherUserId)_profile_Picture.png"
+        guard let uid = model["uid"] ,
+            let name = model["name"]  else { return }
         
+        let path = "images/\(uid)_profile_Picture.png"
+
         StorageManager.shared.downloadUrl(with: path) { (result) in
-            
+
             switch result {
             case .success(let url):
-                
+
                 DispatchQueue.main.async {
                     self.userImage.sd_setImage(with: url, completed: nil)
                 }
-                                
+
             case .failure((let error)):
                 print("failed to get the image url \(error)")
             }
-            
+
         }
-        
-        userlabel.text = model.name
-        messagelabel.text = model.latestMessage.text
+
+        userlabel.text = name
     }
    
 }

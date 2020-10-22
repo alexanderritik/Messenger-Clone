@@ -25,7 +25,7 @@ class NewConversationViewController: UIViewController  {
     private let tableView : UITableView = {
         let table = UITableView()
         table.isHidden = true
-        table.register(UITableViewCell.self, forCellReuseIdentifier: "cell")
+        table.register(newConversationCell.self, forCellReuseIdentifier: "newConversationCell")
         return table
     }()
     
@@ -115,10 +115,16 @@ extension NewConversationViewController : UISearchBarDelegate {
     }
     
     func filterUser(with term : String){
+        
+        guard let myId = Helper.uniqueId() else { return }
+        
         //update the ui or show no reuslt label
-//        guard hasFetched else { return }
+        guard hasFetched else { return }
 
         let results : [[String : String]] = self.users.filter({
+            
+            guard let id = $0["uid"] , myId != id else { return false }
+            
             guard let name = $0["name"]?.lowercased() else { return false}
             
             return name.hasPrefix(term.lowercased())
@@ -164,10 +170,11 @@ extension NewConversationViewController : UITableViewDelegate ,UITableViewDataSo
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "cell" , for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: "newConversationCell" , for: indexPath) as! newConversationCell
         
-        cell.textLabel?.text = results[indexPath.row]["name"]
-
+//        cell.textLabel?.text = results[indexPath.row]["name"]
+        
+        cell.configure(with: results[indexPath.row])
         return cell
     }
     
@@ -180,5 +187,9 @@ extension NewConversationViewController : UITableViewDelegate ,UITableViewDataSo
             guard let strongSelf = self else {return }
             strongSelf.completion?(targetUserData)
         }
+    }
+    
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        return 95
     }
 }

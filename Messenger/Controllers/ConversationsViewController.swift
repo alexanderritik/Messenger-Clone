@@ -58,6 +58,9 @@ class ConversationsViewController: UIViewController  {
         //add bar button
         navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .compose, target: self, action: #selector(newChat))
         
+        // to hide lines in table view
+        tableView.separatorColor = UIColor.clear
+        
         view.addSubview(tableView)
         view.addSubview(noConversationLabel)
        
@@ -70,6 +73,7 @@ class ConversationsViewController: UIViewController  {
        super.viewWillLayoutSubviews()
         
         tableView.frame = CGRect(x: 0, y: 0, width: view.width , height: view.height)
+        tableView.backgroundColor =  UIColor(hex: "#c3e3e8")
     }
     
     
@@ -145,7 +149,7 @@ extension ConversationsViewController :  UITableViewDelegate, UITableViewDataSou
     }
     
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return 120
+        return 90
     }
     
 }

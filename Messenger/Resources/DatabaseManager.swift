@@ -402,7 +402,7 @@ extension DatabaseManager {
                 if type == "photo" {
                     // photo
                     guard let imageUrl = URL(string: message),
-                          let placeholder = UIImage(systemName: "tray.and.arrow.down") else { return nil }
+                          let placeholder = UIImage(systemName: "photo") else { return nil }
                     
                     let media = Media(url: imageUrl,
                                       image: nil,
@@ -410,6 +410,19 @@ extension DatabaseManager {
                                       size: CGSize(width: 300, height: 300))
                     
                     kind = .photo(media)
+                    
+                }else if type == "video"{
+                 
+                    guard let videoUrl = URL(string: message),
+                          let placeholder = UIImage(systemName: "video") else { return nil }
+                    
+                    let media = Media(url: videoUrl,
+                                      image: nil,
+                                      placeholderImage: placeholder,
+                                      size: CGSize(width: 300, height: 300))
+                    
+                    kind = .video(media)
+                    
                 }else{
                     // media
                     kind = .text(message)
@@ -468,8 +481,11 @@ extension DatabaseManager {
                     messageTxt = targetUrlString
                 }
                 type = "photo"
-            case .video(_):
-                break
+            case .video(let mediaItem):
+                if let targetUrlString = mediaItem.url?.absoluteString{
+                    messageTxt = targetUrlString
+                }
+                type = "video"
             case .location(_):
                 break
             case .emoji(_):

@@ -74,15 +74,17 @@ class StorageManager {
     public func uploadImagePicture(with data: Data , filename : String , completion: @escaping uploadPictureCompletion ) {
            
 
-           storage.child("message_images/\(filename)").putData(data, metadata: nil , completion: { (metaData , error) in
+           storage.child("message_images/\(filename)").putData(data, metadata: nil , completion: { [weak self] (metaData , error) in
                
+            guard let strongSelf = self else { return }
+            
                guard error == nil else {
                    print("Failed to uplaod image to firebase")
                    completion(.failure(StorageErrors.failedToUpload))
                    return
                }
                
-               self.storage.child("message_images/\(filename)").downloadURL { (url, error) in
+               strongSelf.storage.child("message_images/\(filename)").downloadURL { (url, error) in
                    
                    guard let url = url else {
                        print("failed to downlaod url")
@@ -98,5 +100,36 @@ class StorageManager {
            })
            
        }
+ 
     
+    ///Uplaod the message sent video to firebase and return completion with url string
+    public func uploadVideoPicture(with fileUrl: URL , filename : String , completion: @escaping uploadPictureCompletion ) {
+        
+        
+        storage.child("message_videos/\(filename)").putFile(from: fileUrl, metadata: nil , completion: {[weak self] (metaData , error) in
+            
+            guard let strongSelf = self else { return }
+            
+            guard error == nil else {
+                print("Failed to uplaod video to firebase")
+                completion(.failure(StorageErrors.failedToUpload))
+                return
+            }
+            
+            strongSelf.storage.child("message_videos/\(filename)").downloadURL { (url, error) in
+                
+                guard let url = url else {
+                    print("failed to downlaod url")
+                    completion(.failure(StorageErrors.failedToDownlaodUrl))
+                    return
+                }
+                
+                let urlString = url.absoluteString
+                print(urlString)
+                completion(.success(urlString))
+            }
+            
+        })
+        
+    }
 }

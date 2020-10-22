@@ -19,6 +19,7 @@
 		260EB4B12533260F0032164B /* VideoPlayerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 260EB4B02533260F0032164B /* VideoPlayerViewController.swift */; };
 		260EB4B3253326250032164B /* NewConversationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 260EB4B2253326250032164B /* NewConversationViewController.swift */; };
 		260EB4B52533262E0032164B /* ProfileViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 260EB4B42533262E0032164B /* ProfileViewController.swift */; };
+		260F87DF254226B200D387BF /* newConversationCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 260F87DE254226B200D387BF /* newConversationCell.swift */; };
 		2616799B2534363700784879 /* extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2616799A2534363700784879 /* extension.swift */; };
 		2616799D2534409300784879 /* Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2616799C2534409300784879 /* Helper.swift */; };
 		261679A525346F5100784879 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 261679A425346F5100784879 /* GoogleService-Info.plist */; };
@@ -44,6 +45,7 @@
 		260EB4B02533260F0032164B /* VideoPlayerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPlayerViewController.swift; sourceTree = "<group>"; };
 		260EB4B2253326250032164B /* NewConversationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewConversationViewController.swift; sourceTree = "<group>"; };
 		260EB4B42533262E0032164B /* ProfileViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileViewController.swift; sourceTree = "<group>"; };
+		260F87DE254226B200D387BF /* newConversationCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = newConversationCell.swift; sourceTree = "<group>"; };
 		2616799A2534363700784879 /* extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = extension.swift; sourceTree = "<group>"; };
 		2616799C2534409300784879 /* Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Helper.swift; sourceTree = "<group>"; };
 		261679A425346F5100784879 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
@@ -133,6 +135,7 @@
 			isa = PBXGroup;
 			children = (
 				26B22CD5253E21F5005EDD57 /* ConversationTableViewCell.swift */,
+				260F87DE254226B200D387BF /* newConversationCell.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -329,6 +332,7 @@
 				260EB494253324400032164B /* ConversationsViewController.swift in Sources */,
 				260EB4B12533260F0032164B /* VideoPlayerViewController.swift in Sources */,
 				260EB490253324400032164B /* AppDelegate.swift in Sources */,
+				260F87DF254226B200D387BF /* newConversationCell.swift in Sources */,
 				26B7A7B32535468A0042221C /* DatabaseManager.swift in Sources */,
 				26B7A7B525360A1D0042221C /* ChatViewController.swift in Sources */,
 				260EB4B52533262E0032164B /* ProfileViewController.swift in Sources */,
